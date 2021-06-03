@@ -39,7 +39,8 @@
 				  backward-word
 				  back-to-indentation
 				  move-beginning-of-line
-				  move-end-of-line)
+				  move-end-of-line
+				  my/smart-beginning-of-line)
   "List of automarker commands.
 
  The commands here are expected to be displacement commands."
@@ -48,7 +49,14 @@
 (defcustom mymodal-actions '(kill-ring-save
 			     kill-region
 			     delete-region
-			     backward-delete-char-untabify)
+			     backward-delete-char-untabify
+			     composable-kill-region
+			     composable-kill-ring-save
+			     composable-indent-region
+			     composable-comment-dwim
+			     composable-upcase-region
+			     composable-downcase-region
+			     composable-delete-region)
   "List of actions that don't deactivate our mark.
 
 These are the commands that perform some actions."
@@ -68,17 +76,24 @@ These are the commands that perform some actions."
       (activate-mark)
       (setq mymodal-marked t
 	    mymodal-last-command this-command)))
-   ((memq this-command actions) nil)    ;; Action commands (composable latter)
+
+   ((memq this-command mymodal-actions)         ;; Action commands (composable latter)
+    (unless (use-region-p)
+      (setq mymodal-marked t
+	    mymodal-last-command this-command)))
    ((and mymodal-marked                 ;; Else deactivate mark
 	 (use-region-p))
     (setq mymodal-marked nil)
-    (deactivate-mark t))
-   ))
+    (deactivate-mark t))))
 
+;;;###autoload
 (define-minor-mode mymodal-mode
-  "Simple autoselection mode "
+  "Simple auto-selection mymodal-mode mode."
+  :global 1
   (if mymodal-mode
       (add-hook 'pre-command-hook #'mymodal-hook)
-    (remove-hook 'pre-command-hook 'pre-command-hook)))
+    (remove-hook 'pre-command-hook #'mymodal-hook)))
+
+(provide 'mymodal)
 
 ;;; mymodal.el ends here
