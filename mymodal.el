@@ -30,16 +30,29 @@
 
 ;;; package --- Sumary
 
-(defconst markers '(forward-word
-		    backward-word
-		    back-to-indentation
-		    move-beginning-of-line
-		    move-end-of-line))
+(defgroup mymodal nil
+  "Mymodal editing."
+  :prefix "mymodal-"
+  :group 'tools)
 
-(defconst actions '(kill-ring-save
-		    kill-region
-		    delete-region
-		    backward-delete-char-untabify))
+(defcustom mymodal-auto-markers '(forward-word
+				  backward-word
+				  back-to-indentation
+				  move-beginning-of-line
+				  move-end-of-line)
+  "List of automarker commands.
+
+ The commands here are expected to be displacement commands."
+  :type 'hook)
+
+(defcustom mymodal-actions '(kill-ring-save
+			     kill-region
+			     delete-region
+			     backward-delete-char-untabify)
+  "List of actions that don't deactivate our mark.
+
+These are the commands that perform some actions."
+  :type 'hook)
 
 
 (defvar-local mymodal-last-command nil)
@@ -48,7 +61,7 @@
 (defun mymodal-hook ()
   "My modal hook for editing."
   (cond
-   ((memq this-command markers)         ;; marker commands
+   ((memq this-command mymodal-auto-markers)    ;; marker commands
     (unless (and mymodal-marked
 		 (eq mymodal-last-command this-command))
       (push-mark)
