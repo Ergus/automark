@@ -68,36 +68,30 @@ These are the commands that perform some actions."
 
 (defun mymodal-hook ()
   "My modal hook for editing."
-  (let ((is-marker (memq this-command mymodal-auto-markers))
-	(is-action (memq this-command mymodal-actions)))
-    (cond
-     ((and is-marker                       ;; marker command first time
-	   (not mymodal-marked)
-	   (not mymodal-last-command)
-	   (not (region-active-p)))
+  (cond
+   ((memq this-command mymodal-auto-markers) ;; Marker commands
+    (if (and mymodal-marked
+	     mymodal-last-command)
+	(unless (eq mymodal-last-command this-command)
+	  (push-mark)
+	  (setq mymodal-last-command this-command)))
+    (unless (region-active-p)
       (push-mark)
       (activate-mark)
       (setq mymodal-marked t
-	    mymodal-last-command this-command))
+	    mymodal-last-command this-command)))
 
-     ((and is-marker                       ;; marker command change
-	   mymodal-marked
-	   mymodal-last-command
-	   (not (eq mymodal-last-command this-command)))
-      (push-mark)
-      (setq mymodal-last-command this-command))
+   ((memq this-command mymodal-actions)      ;; Action commands
+    (unless (use-region-p)
+      (setq mymodal-marked t
+	    mymodal-last-command this-command)))
 
-     (is-action                            ;; Action commands (composable latter)
-      (unless (use-region-p)
-	(setq mymodal-marked t
-	      mymodal-last-command this-command)))
-
-     ((and mymodal-marked                  ;; No marker commands.
-	   mymodal-last-command
-	   (not (eq mymodal-last-command this-command)))
-      (setq mymodal-marked nil
-	    mymodal-last-command nil)
-      (deactivate-mark t)))))
+   ((and mymodal-marked                      ;; No marker commands.
+	 mymodal-last-command
+	 (not (eq mymodal-last-command this-command)))
+    (setq mymodal-marked nil
+	  mymodal-last-command nil)
+    (deactivate-mark t))))
 
 ;;;###autoload
 (define-minor-mode mymodal-mode
