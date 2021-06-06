@@ -27,7 +27,6 @@
 
 ;;; Code:
 
-
 ;;; package --- Sumary
 
 (defgroup mymodal nil
@@ -37,6 +36,10 @@
 
 (defcustom mymodal-auto-markers '(forward-word
 				  backward-word
+				  forward-list
+				  backward-list
+				  beginning-of-buffer
+				  end-of-buffer
 				  back-to-indentation
 				  move-beginning-of-line
 				  move-end-of-line
@@ -82,7 +85,7 @@ These are the commands that perform some actions."
 	    mymodal-last-command this-command)))
 
    ((memq this-command mymodal-actions)      ;; Action commands
-    (unless (use-region-p)
+    (unless (region-active-p)
       (setq mymodal-marked t
 	    mymodal-last-command this-command)))
 
