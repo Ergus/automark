@@ -67,9 +67,14 @@ These are the commands that perform some actions."
 
 
 (defvar-local mymodal-last-command nil)
-(defvar-local mymodal-marked nil)
+(defvar-local mymodal-marker (make-marker))
 (defvar-local mymodal-region-backgrownd-saved nil)
 
+(defun mymodal-exit ()
+  "Deactivate mymodal mode."
+  (set-marker mymodal-marker nil)
+  (setq mymodal-last-command nil)
+  (deactivate-mark t))
 
 (defun mymodal-deactivate-mark-hook ()
   "Deactivate Mark hook for mymodal mode."
@@ -77,37 +82,46 @@ These are the commands that perform some actions."
   ;; restore default region background color
   (set-face-attribute 'region nil :background mymodal-region-backgrownd-saved))
 
+(defun mymodal-post-hook ()
+  "Post command hook to get the point marker.
+
+The marker info is useful only after a `mymodal-auto-markers'."
+  (if (not (eq (marker-position mymodal-marker) (point)))
+      (set-marker mymodal-marker (point))
+    (remove-hook 'post-command-hook #'mymodal-post-hook)
+    (mymodal-exit)))
+
 (defun mymodal-hook ()
   "My modal hook for editing."
   (cond
-   ((memq this-command mymodal-auto-markers) ;; Marker commands
-    (if (and mymodal-marked
-	     mymodal-last-command)
-	(unless (eq mymodal-last-command this-command)
+   ((memq this-command mymodal-auto-markers)           ;; Marker commands
+    (if (and (marker-position mymodal-marker)
+	     mymodal-last-command)      ;; Already active?
+	(unless (eq mymodal-last-command this-command) ;; But change command
 	  (push-mark)
-	  (setq mymodal-last-command this-command)))
-    (unless (region-active-p)
-      ;; Change region background
-      (when (color-supported-p "brightblack" nil t)
-	(setq mymodal-region-backgrownd-saved (face-attribute 'region :background))
-	(set-face-attribute 'region nil :background "brightblack")
-	(add-hook 'deactivate-mark-hook #'mymodal-deactivate-mark-hook))
-      (push-mark)
-      (activate-mark)
-      (setq mymodal-marked t
-	    mymodal-last-command this-command)))
+	  (setq mymodal-last-command this-command))
 
-   ((memq this-command mymodal-actions)      ;; Action commands
-    (unless (region-active-p)
-      (setq mymodal-marked t
-	    mymodal-last-command this-command)))
+      ;; Mode is not active, so, activate?
+      (unless (region-active-p)
+	(when (color-supported-p "brightblack" nil t)  ;; Change region's background
+	  (setq mymodal-region-backgrownd-saved (face-attribute 'region :background))
+	  (set-face-attribute 'region nil :background "brightblack")
+	  (add-hook 'deactivate-mark-hook #'mymodal-deactivate-mark-hook))
+	(add-hook 'post-command-hook #'mymodal-post-hook)
 
-   ((and mymodal-marked                      ;; No marker commands.
+	(push-mark)
+	(activate-mark)
+	(setq mymodal-last-command this-command))))
+
+   ;; ((memq this-command mymodal-actions)      ;; Action commands
+   ;;  (unless (region-active-p)
+   ;;    (setq mymodal-marker t
+   ;; 	    mymodal-last-command this-command)))
+
+   ((and (marker-position mymodal-marker)       ;; No marker commands.
 	 mymodal-last-command
 	 (not (eq mymodal-last-command this-command)))
-    (setq mymodal-marked nil
-	  mymodal-last-command nil)
-    (deactivate-mark t))))
+    (mymodal-exit))))
 
 ;;;###autoload
 (define-minor-mode mymodal-mode
