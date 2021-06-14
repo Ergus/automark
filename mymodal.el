@@ -113,10 +113,14 @@ The marker info is useful only after a `mymodal-auto-markers'."
 	(activate-mark)
 	(setq mymodal-last-command this-command))))
 
-   ;; ((memq this-command mymodal-actions)      ;; Action commands
-   ;;  (unless (region-active-p)
-   ;;    (setq mymodal-marker t
-   ;; 	    mymodal-last-command this-command)))
+   ((memq this-command mymodal-actions)      ;; Action commands,
+    ;; add something here to assert we don't go to the latest condition.
+    ;; that disables the mode before executing the command.
+    nil
+    ;; (unless (region-active-p)
+    ;;   (setq mymodal-marker t
+    ;; 	    mymodal-last-command this-command))
+    )
 
    ((and (marker-position mymodal-marker)       ;; No marker commands.
 	 mymodal-last-command
