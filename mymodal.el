@@ -38,8 +38,8 @@
 				  backward-word
 				  forward-list
 				  backward-list
-				  beginning-of-buffer
-				  end-of-buffer
+				  ;;beginning-of-buffer
+				  ;;end-of-buffer
 				  back-to-indentation
 				  move-beginning-of-line
 				  move-end-of-line
@@ -68,6 +68,14 @@ These are the commands that perform some actions."
 
 (defvar-local mymodal-last-command nil)
 (defvar-local mymodal-marked nil)
+(defvar-local mymodal-region-backgrownd-saved nil)
+
+
+(defun mymodal-deactivate-mark-hook ()
+  "Deactivate Mark hook for mymodal mode."
+  (remove-hook 'deactivate-mark-hook #'mymodal-deactivate-mark-hook)
+  ;; restore default region background color
+  (set-face-attribute 'region nil :background mymodal-region-backgrownd-saved))
 
 (defun mymodal-hook ()
   "My modal hook for editing."
@@ -79,6 +87,11 @@ These are the commands that perform some actions."
 	  (push-mark)
 	  (setq mymodal-last-command this-command)))
     (unless (region-active-p)
+      ;; Change region background
+      (when (color-supported-p "brightblack" nil t)
+	(setq mymodal-region-backgrownd-saved (face-attribute 'region :background))
+	(set-face-attribute 'region nil :background "brightblack")
+	(add-hook 'deactivate-mark-hook #'mymodal-deactivate-mark-hook))
       (push-mark)
       (activate-mark)
       (setq mymodal-marked t
