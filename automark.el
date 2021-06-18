@@ -74,6 +74,7 @@ These are the commands that perform some actions."
   "Deactivate automark mode."
   (set-marker automark-marker nil)
   (setq automark-last-command nil)
+  (remove-hook 'post-command-hook #'automark-post-hook)
   (deactivate-mark t))
 
 (defun automark-deactivate-mark-hook ()
@@ -88,7 +89,6 @@ These are the commands that perform some actions."
 The marker info is useful only after a `automark-auto-markers'."
   (if (not (eq (marker-position automark-marker) (point)))
       (set-marker automark-marker (point))
-    (remove-hook 'post-command-hook #'automark-post-hook)
     (automark-exit)))
 
 (defun automark-hook ()
