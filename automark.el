@@ -68,7 +68,7 @@ together to provide more flexibility to the user."
 
 
 (defvar-local automark-marker (make-marker))
-(defvar-local automark-region-backgrownd-saved nil)
+(defvar-local automark-region-face-cookie nil)
 
 (defun automark-exit ()
   "Deactivate automark mode."
@@ -82,7 +82,7 @@ together to provide more flexibility to the user."
   (when (eq this-command 'keyboard-quit)
     (exchange-point-and-mark t))
   ;; restore default region background color
-  (set-face-attribute 'region nil :background automark-region-backgrownd-saved))
+  (face-remap-remove-relative automark-region-face-cookie))
 
 (defun automark-post-hook ()
   "Post command hook to get the point marker.
@@ -98,22 +98,18 @@ The marker info is useful only after a `automark-auto-markers'."
    ((memq this-command automark-auto-markers)           ;; Marker commands
     (if (marker-position automark-marker)
 	;; if automark is already active just update mark position
-	(progn
-	  (push-mark)
-	  (setq automark-last-command this-command))
+	(push-mark nil t)
 
       ;; Mode is not active, so, activate?
       (unless (region-active-p)
 	(when (color-supported-p "brightblack" nil t)  ;; Change region's background
-	  (setq automark-region-backgrownd-saved (face-attribute 'region :background))
-	  (set-face-attribute 'region nil :background "brightblack")
+	  (setq automark-region-face-cookie
+		(face-remap-add-relative 'region :background "brightblack"))
 	  (add-hook 'deactivate-mark-hook #'automark-deactivate-mark-hook))
 	;; Add the post command hook.
 	(add-hook 'post-command-hook #'automark-post-hook)
 
-	(push-mark)
-	(activate-mark)
-	(setq automark-last-command this-command))))
+	(push-mark nil t t))))
 
    ;; Condition to exit earlier and not disable the mode before the
    ;; action command.
