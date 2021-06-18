@@ -29,12 +29,12 @@
 
 ;;; package --- Sumary
 
-(defgroup mymodal nil
-  "Mymodal editing."
-  :prefix "mymodal-"
+(defgroup automark nil
+  "Automark editing."
+  :prefix "automark-"
   :group 'tools)
 
-(defcustom mymodal-auto-markers '(forward-word
+(defcustom automark-auto-markers '(forward-word
 				  backward-word
 				  forward-list
 				  backward-list
@@ -49,7 +49,7 @@
  The commands here are expected to be displacement commands."
   :type 'hook)
 
-(defcustom mymodal-actions '(kill-ring-save
+(defcustom automark-actions '(kill-ring-save
 			     kill-region
 			     delete-region
 			     backward-delete-char-untabify
@@ -66,75 +66,75 @@ These are the commands that perform some actions."
   :type 'hook)
 
 
-(defvar-local mymodal-last-command nil)
-(defvar-local mymodal-marker (make-marker))
-(defvar-local mymodal-region-backgrownd-saved nil)
+(defvar-local automark-last-command nil)
+(defvar-local automark-marker (make-marker))
+(defvar-local automark-region-backgrownd-saved nil)
 
-(defun mymodal-exit ()
-  "Deactivate mymodal mode."
-  (set-marker mymodal-marker nil)
-  (setq mymodal-last-command nil)
+(defun automark-exit ()
+  "Deactivate automark mode."
+  (set-marker automark-marker nil)
+  (setq automark-last-command nil)
   (deactivate-mark t))
 
-(defun mymodal-deactivate-mark-hook ()
-  "Deactivate Mark hook for mymodal mode."
-  (remove-hook 'deactivate-mark-hook #'mymodal-deactivate-mark-hook)
+(defun automark-deactivate-mark-hook ()
+  "Deactivate Mark hook for automark mode."
+  (remove-hook 'deactivate-mark-hook #'automark-deactivate-mark-hook)
   ;; restore default region background color
-  (set-face-attribute 'region nil :background mymodal-region-backgrownd-saved))
+  (set-face-attribute 'region nil :background automark-region-backgrownd-saved))
 
-(defun mymodal-post-hook ()
+(defun automark-post-hook ()
   "Post command hook to get the point marker.
 
-The marker info is useful only after a `mymodal-auto-markers'."
-  (if (not (eq (marker-position mymodal-marker) (point)))
-      (set-marker mymodal-marker (point))
-    (remove-hook 'post-command-hook #'mymodal-post-hook)
-    (mymodal-exit)))
+The marker info is useful only after a `automark-auto-markers'."
+  (if (not (eq (marker-position automark-marker) (point)))
+      (set-marker automark-marker (point))
+    (remove-hook 'post-command-hook #'automark-post-hook)
+    (automark-exit)))
 
-(defun mymodal-hook ()
+(defun automark-hook ()
   "My modal hook for editing."
   (cond
-   ((memq this-command mymodal-auto-markers)           ;; Marker commands
-    (if (and (marker-position mymodal-marker)
-	     mymodal-last-command)      ;; Already active?
-	(unless (eq mymodal-last-command this-command) ;; But change command
+   ((memq this-command automark-auto-markers)           ;; Marker commands
+    (if (and (marker-position automark-marker)
+	     automark-last-command)      ;; Already active?
+	(unless (eq automark-last-command this-command) ;; But change command
 	  (push-mark)
-	  (setq mymodal-last-command this-command))
+	  (setq automark-last-command this-command))
 
       ;; Mode is not active, so, activate?
       (unless (region-active-p)
 	(when (color-supported-p "brightblack" nil t)  ;; Change region's background
-	  (setq mymodal-region-backgrownd-saved (face-attribute 'region :background))
+	  (setq automark-region-backgrownd-saved (face-attribute 'region :background))
 	  (set-face-attribute 'region nil :background "brightblack")
-	  (add-hook 'deactivate-mark-hook #'mymodal-deactivate-mark-hook))
-	(add-hook 'post-command-hook #'mymodal-post-hook)
+	  (add-hook 'deactivate-mark-hook #'automark-deactivate-mark-hook))
+	(add-hook 'post-command-hook #'automark-post-hook)
 
 	(push-mark)
 	(activate-mark)
-	(setq mymodal-last-command this-command))))
+	(setq automark-last-command this-command))))
 
-   ((memq this-command mymodal-actions)      ;; Action commands,
+   ((memq this-command automark-actions)      ;; Action commands,
     ;; add something here to assert we don't go to the latest condition.
     ;; that disables the mode before executing the command.
     nil
     ;; (unless (region-active-p)
-    ;;   (setq mymodal-marker t
-    ;; 	    mymodal-last-command this-command))
+    ;;   (setq automark-marker t
+    ;; 	    automark-last-command this-command))
     )
 
-   ((and (marker-position mymodal-marker)       ;; No marker commands.
-	 mymodal-last-command
-	 (not (eq mymodal-last-command this-command)))
-    (mymodal-exit))))
+   ((and (marker-position automark-marker)       ;; No marker commands.
+	 automark-last-command
+	 (not (eq automark-last-command this-command)))
+    (automark-exit))))
 
 ;;;###autoload
-(define-minor-mode mymodal-mode
-  "Simple auto-selection mymodal-mode mode."
+(define-minor-mode automark-mode
+  "Simple auto-selection automark-mode mode."
   :global 1
-  (if mymodal-mode
-      (add-hook 'pre-command-hook #'mymodal-hook)
-    (remove-hook 'pre-command-hook #'mymodal-hook)))
+  (if automark-mode
+      (add-hook 'pre-command-hook #'automark-hook)
+    (remove-hook 'pre-command-hook #'automark-hook)))
 
-(provide 'mymodal)
+(provide 'automark)
 
-;;; mymodal.el ends here
+;;; automark.el ends here
