@@ -3,7 +3,7 @@
 ;; Copyright (C) 2021  Jimmy Aguilar Mena
 
 ;; Author: Jimmy Aguilar Mena
-;; Homepage: 
+;; Homepage: https://github.com/Ergus/automark
 ;; Keywords: tools
 ;; Package-Requires: ((emacs "25.1"))
 ;; Version: 0
@@ -67,7 +67,6 @@ This variable is checked after `automark-actions' and they work
 together to provide more flexibility to the user."
   :type 'string)
 
-
 (defvar-local automark-marker (make-marker))
 (defvar-local automark-region-face-cookie nil)
 
@@ -78,7 +77,7 @@ together to provide more flexibility to the user."
   (deactivate-mark t))
 
 (defun automark-deactivate-mark-hook ()
-  "Deactivate Mark hook for automark mode."
+  "Deactivate mark hook for automark mode."
   (remove-hook 'deactivate-mark-hook #'automark-deactivate-mark-hook)
   (when (eq this-command 'keyboard-quit)
     (exchange-point-and-mark t))
@@ -88,10 +87,10 @@ together to provide more flexibility to the user."
 (defun automark-post-hook ()
   "Post command hook to get the point marker.
 
-The marker info is useful only after a `automark-auto-markers'."
-  (if (not (eq (marker-position automark-marker) (point)))
-      (set-marker automark-marker (point))
-    (automark-exit)))
+The marker info is useful only after an `automark-auto-markers'."
+  (if (eq (marker-position automark-marker) (point))
+      (automark-exit)
+    (set-marker automark-marker (point))))
 
 (defun automark-hook ()
   "My modal hook for editing."
@@ -121,8 +120,8 @@ The marker info is useful only after a `automark-auto-markers'."
 	     (string-match-p automark-actions-regex (symbol-name this-command))))      ;; Action commands,
     nil)
 
-   (t ;; Otherwise exit the mode.
-    (automark-exit))))
+   ;; Otherwise exit the mode.
+   (t (automark-exit))))
 
 ;;;###autoload
 (define-minor-mode automark-mode
