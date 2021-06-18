@@ -81,6 +81,8 @@ together to provide more flexibility to the user."
 (defun automark-deactivate-mark-hook ()
   "Deactivate Mark hook for automark mode."
   (remove-hook 'deactivate-mark-hook #'automark-deactivate-mark-hook)
+  (when (eq this-command 'keyboard-quit)
+    (exchange-point-and-mark t))
   ;; restore default region background color
   (set-face-attribute 'region nil :background automark-region-backgrownd-saved))
 
@@ -97,8 +99,9 @@ The marker info is useful only after a `automark-auto-markers'."
   (cond
    ((memq this-command automark-auto-markers)           ;; Marker commands
     (if (and (marker-position automark-marker)
-	     automark-last-command)      ;; Already active?
-	(unless (eq automark-last-command this-command) ;; But change command
+	     automark-last-command)
+	;; if automark is already active just update mark position
+	(progn
 	  (push-mark)
 	  (setq automark-last-command this-command))
 
@@ -108,6 +111,7 @@ The marker info is useful only after a `automark-auto-markers'."
 	  (setq automark-region-backgrownd-saved (face-attribute 'region :background))
 	  (set-face-attribute 'region nil :background "brightblack")
 	  (add-hook 'deactivate-mark-hook #'automark-deactivate-mark-hook))
+	;; Add the post command hook.
 	(add-hook 'post-command-hook #'automark-post-hook)
 
 	(push-mark)
@@ -116,10 +120,11 @@ The marker info is useful only after a `automark-auto-markers'."
 
    ;; Condition to exit earlier and not disable the mode before the
    ;; action command.
-   ((or (not (marker-position automark-marker))    ;; Mode is inactive
+   ((or (eq this-command 'set-mark-command)        ;; set mark exits
+	(not (marker-position automark-marker))    ;; Mode is inactive
 	(memq this-command automark-actions)
-	(and (stringp automark-actions-regex)
-	     (not (string-empty-p automark-actions-regex))
+	(and (stringp automark-actions-regex)      ;; not a command in regex
+	     (not (string= automark-actions-regex ""))
 	     (string-match-p automark-actions-regex (symbol-name this-command))))      ;; Action commands,
     nil)
 
