@@ -53,17 +53,18 @@
 			     kill-region
 			     delete-region
 			     backward-delete-char-untabify
-			     composable-kill-region
-			     composable-kill-ring-save
-			     composable-indent-region
-			     composable-comment-dwim
-			     composable-upcase-region
-			     composable-downcase-region
-			     composable-delete-region)
+			     yank)
   "List of actions that don't deactivate our mark.
 
 These are the commands that perform some actions."
   :type 'hook)
+
+(defcustom automark-actions-regex "^composable-"
+  "A regex of command names that may be considered as action commands.
+
+This variable is checked after `automark-actions' and they work
+together to provide more flexibility to the user."
+  :type 'string)
 
 
 (defvar-local automark-last-command nil)
@@ -116,7 +117,10 @@ The marker info is useful only after a `automark-auto-markers'."
    ;; Condition to exit earlier and not disable the mode before the
    ;; action command.
    ((or (not (marker-position automark-marker))    ;; Mode is inactive
-	(memq this-command automark-actions))      ;; Action commands,
+	(memq this-command automark-actions)
+	(and (stringp automark-actions-regex)
+	     (not (string-empty-p automark-actions-regex))
+	     (string-match-p automark-actions-regex (symbol-name this-command))))      ;; Action commands,
     nil)
 
    ((and automark-last-command
