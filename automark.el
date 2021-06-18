@@ -53,6 +53,7 @@
 			     kill-region
 			     delete-region
 			     backward-delete-char-untabify
+			     set-mark-command ;; this one is actually a trick
 			     yank)
   "List of actions that don't deactivate our mark.
 
@@ -113,8 +114,7 @@ The marker info is useful only after a `automark-auto-markers'."
 
    ;; Condition to exit earlier and not disable the mode before the
    ;; action command.
-   ((or (eq this-command 'set-mark-command)        ;; set mark exits
-	(not (marker-position automark-marker))    ;; Mode is inactive
+   ((or (not (marker-position automark-marker))    ;; Mode is inactive
 	(memq this-command automark-actions)
 	(and (stringp automark-actions-regex)      ;; not a command in regex
 	     (not (string= automark-actions-regex ""))
