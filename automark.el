@@ -113,17 +113,13 @@ The marker info is useful only after a `automark-auto-markers'."
 	(activate-mark)
 	(setq automark-last-command this-command))))
 
-   ((memq this-command automark-actions)      ;; Action commands,
-    ;; add something here to assert we don't go to the latest condition.
-    ;; that disables the mode before executing the command.
-    nil
-    ;; (unless (region-active-p)
-    ;;   (setq automark-marker t
-    ;; 	    automark-last-command this-command))
-    )
+   ;; Condition to exit earlier and not disable the mode before the
+   ;; action command.
+   ((or (not (marker-position automark-marker))    ;; Mode is inactive
+	(memq this-command automark-actions))      ;; Action commands,
+    nil)
 
-   ((and (marker-position automark-marker)       ;; No marker commands.
-	 automark-last-command
+   ((and automark-last-command
 	 (not (eq automark-last-command this-command)))
     (automark-exit))))
 
