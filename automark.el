@@ -67,14 +67,12 @@ together to provide more flexibility to the user."
   :type 'string)
 
 
-(defvar-local automark-last-command nil)
 (defvar-local automark-marker (make-marker))
 (defvar-local automark-region-backgrownd-saved nil)
 
 (defun automark-exit ()
   "Deactivate automark mode."
   (set-marker automark-marker nil)
-  (setq automark-last-command nil)
   (remove-hook 'post-command-hook #'automark-post-hook)
   (deactivate-mark t))
 
@@ -98,8 +96,7 @@ The marker info is useful only after a `automark-auto-markers'."
   "My modal hook for editing."
   (cond
    ((memq this-command automark-auto-markers)           ;; Marker commands
-    (if (and (marker-position automark-marker)
-	     automark-last-command)
+    (if (marker-position automark-marker)
 	;; if automark is already active just update mark position
 	(progn
 	  (push-mark)
@@ -128,8 +125,7 @@ The marker info is useful only after a `automark-auto-markers'."
 	     (string-match-p automark-actions-regex (symbol-name this-command))))      ;; Action commands,
     nil)
 
-   ((and automark-last-command
-	 (not (eq automark-last-command this-command)))
+   (t ;; Otherwise exit the mode.
     (automark-exit))))
 
 ;;;###autoload
